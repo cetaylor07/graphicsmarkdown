@@ -1,0 +1,100 @@
+---
+title: "Graphics and Tables"
+author: "Corey Taylor"
+output: 
+    html_document:
+      theme: darkly
+      toc: true
+      toc_float: true
+      code_folding: hide
+      
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(tidyverse)
+library(kableExtra)
+library(expss)
+```
+
+
+```{r warning = FALSE, message = FALSE}
+CPS2017 <- read.csv("C:/Users/Corey/Documents/GitHub/data/CPS2017.csv")
+View(CPS2017)
+CPS2017$earnhred<- CPS2017$earnhre/100
+CPS2017$sex<-as.factor(CPS2017$sex)
+CPS2017$marital<-as.factor(CPS2017$marital)
+levels(CPS2017$sex)[1]<- "Men"
+levels(CPS2017$sex)[2]<- "Women"
+levels(CPS2017$marital)[1]<- "Married, civilian spouse present"
+levels(CPS2017$marital)[2]<- "Married AF spouse present"
+levels(CPS2017$marital)[3]<- "Married, spouse absent or separated"
+levels(CPS2017$marital)[4]<- "Divorced"
+levels(CPS2017$marital)[5]<- "Widowed"
+levels(CPS2017$marital)[6]<- "Separatd"
+levels(CPS2017$marital)[7]<- "Never married"
+
+```
+
+## Figure 1
+
+```{r warning=FALSE, message=FALSE}
+ggplot(CPS2017, aes(x=earnhred, fill="red")) +
+     geom_histogram(show.legend = FALSE) +
+     facet_wrap(~sex) +
+     xlab("Hourly Wages($)") +
+     ylab("# of Salaries")+
+     theme_bw()+
+    ggtitle("Figure 1: Breakdown of wages between Men and Women")
+```
+
+## Figure 2
+
+```{r warning=FALSE, message=FALSE}
+ggplot(CPS2017, aes(y=earnhre, x=educ, color=sex ))+
+  geom_smooth(model=lm)+
+  xlab("Years of Education")+
+  ylab("Hourly Earnings")+
+  ggtitle("Figure 2:Returns on Education between Men and Women")
+  
+```
+
+## Figure 3 
+
+```{r warning=FALSE}
+CPSwomen<- CPS2017 %>%
+  filter(sex=="Women")%>%
+  mutate(colgrad=educ>15)
+CPSwomen$colgrad <- factor(CPSwomen$colgrad, levels = c(TRUE, FALSE), labels = c("College Graduate", "Not College Graduate"))
+```
+``` {r warning=FALSE}
+ggplot(CPSwomen, aes(x=as.factor(marital), y=earnwke, fill="red"))+
+  geom_boxplot(show.legend = FALSE)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  xlab("Marital Status")+
+  ylab("Weekly Earnings")+
+  facet_wrap(~colgrad)+
+  ggtitle("Weekly Earnings by College Graduation and Marital Status")
+```
+
+
+## Table 1
+```{r}
+CPS2017 %>%
+  mutate(Sex=factor(sex)) %>%
+  group_by(Sex) %>%
+  summarize( "Mean Hourly Earnings"= mean(earnhred,na.rm=TRUE), 
+             "Mean Weekly Earnings"=mean(earnwke, na.rm=TRUE),
+              "Usual Hours Worked" = mean(uhourse, na.rm=TRUE),
+             "Mean Years of Education" = mean(educ, na.rm=TRUE)) %>%
+  knitr::kable() %>%
+  kable_styling("striped", "hover", full_width=F)
+```
+
+
+
+
+
+
+
+
